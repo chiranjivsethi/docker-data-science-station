@@ -1,21 +1,17 @@
 # Docker Data Science Station
 
-## Environment Configuration
+A comprehensive Docker-based data science environment with Jupyter, Airflow, MinIO, PostgreSQL and Streamlit Dashboard available at http://localhost:80
 
-### Setup
+## Features
 
-Edit `.env` and update with your own values:
-```bash
-# JupyterLab
-JUPYTER_TOKEN=your_secure_token_here
-RESEARCH_DIR=/path/to/your/research/data
-HOST_PORT=8888
+- **JupyterLab**: Interactive data analysis and notebook environment
+- **Apache Airflow**: Workflow orchestration and DAG management
+- **MinIO**: S3-compatible object storage
+- **PostgreSQL**: Relational database backend
+- **Redis**: Cache and Celery broker for Airflow
+- **Streamlit Dashboard**: Unified access layer for all services
+- **Automatic Directory Creation**: All required directories are created on first run for reproducibility
 
-# MinIO
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=minioadmin
-MINIO_DATA_DIR=/path/to/minio/data
-```
 
 ## Docker Commands
 
@@ -28,6 +24,12 @@ Stop services:
 ```bash
 docker compose down
 ```
+
+View logs:
+```bash
+docker compose logs -f <service_name>
+```
+
 ## Jupyter Kernel Management
 
 Install a new kernel:
@@ -43,36 +45,51 @@ jupyter kernelspec list
 Uninstall a kernel:
 ```bash
 jupyter kernelspec uninstall <kernelname>
-
-## Accessing CSV Files from MinIO in Jupyter
-
-Install the MinIO client in your Jupyter notebook:
-```python
-!pip install minio
 ```
 
-Read CSV files stored in MinIO:
-```python
-from minio import Minio
-import pandas as pd
-from io import BytesIO
+## Troubleshooting
 
-# Create MinIO client
-# Note: Use the service name 'minio_container' as the endpoint since you're in Docker
-minio_client = Minio(
-    "minio_container:9000",
-    access_key="minioadmin",
-    secret_key="minioadmin",
-    secure=False
-)
+### Directories Not Created
 
-# Read CSV from MinIO bucket
-bucket_name = "your-bucket-name"
-object_name = "path/to/your/file.csv"
+If directories are not created automatically, ensure:
+1. The `.env` file has the correct paths
+2. You have write permissions on the parent directories
+3. Run `docker compose up -d` from the root project directory
 
-response = minio_client.get_object(bucket_name, object_name)
-df = pd.read_csv(BytesIO(response.read()))
+### Permission Issues
+
+If you encounter permission errors on mounted volumes:
+```bash
+
+sudo chmod -R 777 /to/directory/path
 ```
 
-Access MinIO console at: `http://localhost:9001` (use credentials from `.env`)
+### Service Health
+
+Check service status:
+```bash
+docker compose ps
+```
+
+View logs for a specific service:
+```bash
+docker compose logs postgres
+docker compose logs jupyterlab
+docker compose logs airflow-scheduler
+```
+
+## Project Structure
+
+```
+docker-data-science-station/
+├── docker-compose.yml          # Main orchestration file
+├── .env                        # Environment variables
+├── README.md                   # This file
+├── airflow/
+│   └── docker-compose.yml      # Airflow services configuration
+├── jupyterlabs/
+│   └── dockerfile              # JupyterLab image definition
+└── dashboard/
+    ├── app.py                  # Streamlit application
+    └── dockerfile              # Dashboard image definition
 ```
