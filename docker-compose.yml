@@ -38,5 +38,4 @@ services:
     volumes:
       - ./dashboard:/app
     depends_on:
-      - mlflow
       - jupyterlab
