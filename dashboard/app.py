@@ -54,7 +54,8 @@ except:
 SERVICES = {
     "JupyterLab": {"url": f"{current_base_url}:8888", "icon": "📓", "health_check_type": "http"},
     "MinIO": {"url": f"{current_base_url}:9001", "icon": "🗄️", "health_check_type": "http"},
-    "PostgreSQL": {"host": f"{current_base_url}", "port": "5432", "icon": "🐘", "health_check_type": "postgres"}, 
+    "PostgreSQL": {"host": f"{current_base_url}", "port": "5432", "icon": "🐘", "health_check_type": "postgres"},
+    "Airflow": {"url": f"{current_base_url}:8080", "icon": "🌬️", "health_check_type": "http"},
 }
 
 def check_health(url, health_check_type):

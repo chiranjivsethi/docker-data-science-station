@@ -1,4 +1,21 @@
+include:
+  - ./airflow/docker-compose.yml
+
 services:
+  # ======================================
+  # INITIALIZATION SERVICE
+  # ======================================
+  init-dirs:
+    image: busybox:latest
+    container_name: init_dirs
+    volumes:
+      - ${MINIO_DATA_DIR}:${MINIO_DATA_DIR}
+      - ${POSTGRES_DATA_DIR}:${POSTGRES_DATA_DIR}
+      - ${RESEARCH_DIR}:${RESEARCH_DIR}
+    command: sh -c "mkdir -p ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR} && chmod -R 777 ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR}"
+    networks:
+      - data_science_network
+
   # ======================================
   # CORE COMPUTATION ENGINE (Jupyter/GPU)
   # ======================================
@@ -14,8 +31,13 @@ services:
       - NB_UID=1000
       - NB_GID=1000
     volumes:
-      - ${RESEARCH_DIR}:/home/jupyter_data
-  
+      - ${RESEARCH_DIR}:/home/docker_data
+    restart: unless-stopped
+    depends_on:
+      - init-dirs
+    networks:
+      - data_science_network
+
   minio:
     image: minio/minio:latest
     container_name: minio_container
@@ -27,7 +49,12 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       - ${MINIO_DATA_DIR}:/data
-    command: server /data --console-address ":9001" 
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    depends_on:
+      - init-dirs
+    networks:
+      - data_science_network
 
   postgres:
     image: postgres:latest
@@ -40,6 +67,16 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ${POSTGRES_DATA_DIR}:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    depends_on:
+      - init-dirs
+    networks:
+      - data_science_network
 
   # ======================================
   # UNIFIED ACCESS LAYER (THE FRONTEND)
@@ -52,7 +89,15 @@ services:
     volumes:
       - ./dashboard:/app
       - .env:/app/.env
+    restart: unless-stopped
     depends_on:
       - jupyterlab
       - minio
       - postgres
+    networks:
+      - data_science_network
+
+# THE SHARED NETWORK
+networks:
+  data_science_network:
+    driver: bridge
