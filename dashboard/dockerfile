@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install streamlit and requests
-RUN pip install streamlit requests
+RUN pip install streamlit requests python-dotenv psycopg2-binary
 
 COPY app.py .
 

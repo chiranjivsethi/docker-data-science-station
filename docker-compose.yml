@@ -20,12 +20,26 @@ services:
     image: minio/minio:latest
     container_name: minio_container
     ports:
-      - "9001:9000"
+      - "9000:9000"
+      - "9001:9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       - ${MINIO_DATA_DIR}:/data
+    command: server /data --console-address ":9001" 
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ${POSTGRES_DATA_DIR}:/var/lib/postgresql
 
   # ======================================
   # UNIFIED ACCESS LAYER (THE FRONTEND)
@@ -37,5 +51,8 @@ services:
       - "80:8501"
     volumes:
       - ./dashboard:/app
+      - .env:/app/.env
     depends_on:
       - jupyterlab
+      - minio
+      - postgres
