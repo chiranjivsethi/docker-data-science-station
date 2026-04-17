@@ -29,7 +29,8 @@ except:
     current_base_url = base_url  # Default to base_url if detection fails
 
 SERVICES = {
-    "JupyterLab": {"url": f"{current_base_url}:8888", "icon": "📓"}
+    "JupyterLab": {"url": f"{current_base_url}:8888", "icon": "📓"},
+    "MinIO": {"url": f"{current_base_url}:9001", "icon": "🗄️"}
 }
 
 def check_health(url):
