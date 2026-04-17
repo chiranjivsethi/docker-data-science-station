@@ -1,0 +1,31 @@
+services:
+  # ======================================
+  # CORE COMPUTATION ENGINE (Jupyter/GPU)
+  # ======================================
+  jupyterlab:
+    build: ./jupyterlabs
+    container_name: jupyterlab_container
+    ports:
+      - "${HOST_PORT}:8888"
+    environment:
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN}
+      - CHOWN_HOME=yes
+      - NB_USER=jovyan
+      - NB_UID=1000
+      - NB_GID=1000
+    volumes:
+      - ${RESEARCH_DIR}:/home/jupyter_data
+
+  # ======================================
+  # UNIFIED ACCESS LAYER (THE FRONTEND)
+  # ======================================
+  dashboard:
+    build: ./dashboard
+    container_name: ds_dashboard
+    ports:
+      - "80:8501"
+    volumes:
+      - ./dashboard:/app
+    depends_on:
+      - mlflow
+      - jupyterlab
