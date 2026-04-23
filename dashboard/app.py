@@ -115,3 +115,6 @@ for i, (name, info) in enumerate(services_list):
                     st.link_button("Open Service", url=info['url'], key=f"btn_{name}")
             else:
                 st.button("Offline", disabled=True, key=f"off_{name}", use_container_width=True)
+
+st.markdown("---")
+st.title("Projects")
