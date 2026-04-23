@@ -54,9 +54,10 @@ except:
 SERVICES = {
     "JupyterLab": {"url": f"{current_base_url}:8888", "icon": "📓", "health_check_type": "http"},
     "MinIO": {"url": f"{current_base_url}:9001", "icon": "🗄️", "health_check_type": "http"},
-    "PostgreSQL": {"host": f"{current_base_url}", "port": "5432", "icon": "🐘", "health_check_type": "postgres"},
+    "PostgreSQL": {"host": f"{current_base_url}", "port": "5432", "icon": "🐘", "health_check_type": "database"},
     "Airflow": {"url": f"{current_base_url}:8080", "icon": "🌬️", "health_check_type": "http"},
     "MLflow": {"url": f"{current_base_url}:5000", "icon": "📊", "health_check_type": "http"},
+    "SuperSet": {"url": f"{current_base_url}:8088", "icon": "📈", "health_check_type": "http"},
 }
 
 def check_health(url, health_check_type):
@@ -64,7 +65,7 @@ def check_health(url, health_check_type):
     hostname = parsed_url.hostname
     port = parsed_url.port
 
-    if health_check_type == "postgres":
+    if health_check_type == "database":
         try:
             conn = psycopg2.connect(
                 user=DB_USER, password=DB_PASSWORD, host=hostname,

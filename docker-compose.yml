@@ -1,6 +1,7 @@
 include:
   - ./airflow/docker-compose.yml
   - ./mlflow/docker-compose.yml
+  - ./superset/docker-compose.yml
 
 services:
   # ======================================
@@ -13,7 +14,8 @@ services:
       - ${MINIO_DATA_DIR}:${MINIO_DATA_DIR}
       - ${POSTGRES_DATA_DIR}:${POSTGRES_DATA_DIR}
       - ${RESEARCH_DIR}:${RESEARCH_DIR}
-    command: sh -c "mkdir -p ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR} && chmod -R 777 ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR}"
+      - ${SUPERSET_DATA_DIR}:${SUPERSET_DATA_DIR}
+    command: sh -c "mkdir -p ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR} ${SUPERSET_DATA_DIR} && chmod -R 777 ${MINIO_DATA_DIR} ${POSTGRES_DATA_DIR} ${RESEARCH_DIR} ${SUPERSET_DATA_DIR}"
     networks:
       - data_science_network
 
@@ -96,6 +98,7 @@ services:
       - minio
       - postgres
       - mlflow
+      - superset
     networks:
       - data_science_network
 

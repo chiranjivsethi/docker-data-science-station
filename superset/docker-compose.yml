@@ -1,0 +1,80 @@
+services:
+  init-superset:
+    image: busybox:latest
+    container_name: init-superset
+    volumes:
+      - ${SUPERSET_DATA_DIR}:/superset_home
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=postgres
+      - SUPERSET_ADMIN_USER=${SUPERSET_ADMIN_USER}
+      - SUPERSET_ADMIN_PASSWORD=${SUPERSET_ADMIN_PASSWORD}
+      - SUPERSET_ADMIN_EMAIL=${SUPERSET_ADMIN_EMAIL}
+    command: |
+      sh -c "
+        echo 'Initializing Superset directories...'
+        mkdir -p /superset_home/logs
+        mkdir -p /superset_home/data
+        chmod 755 /superset_home
+        echo 'Superset directories initialized'
+      "
+    networks:
+      - data_science_network
+
+  superset:
+    image: apache/superset:${SUPERSET_IMAGE_TAG}
+    container_name: superset
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init-superset:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    environment:
+      # Core configuration
+      - FLASK_APP=superset.app:create_app
+      - PYTHONUNBUFFERED=1
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY}
+      - SUPERSET_LOAD_EXAMPLES=false
+      
+      # Database configuration
+      - SQLALCHEMY_DATABASE_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${SUPERSET_DATABASE_NAME}
+      
+      # Admin user configuration
+      - SUPERSET_ADMIN_USER=${SUPERSET_ADMIN_USER}
+      - SUPERSET_ADMIN_PASSWORD=${SUPERSET_ADMIN_PASSWORD}
+      - SUPERSET_ADMIN_EMAIL=${SUPERSET_ADMIN_EMAIL}
+      
+      # Cache configuration (using shared Redis)
+      - CACHE_TYPE=redis
+      - CACHE_REDIS_HOST=redis
+      - CACHE_REDIS_PORT=6379
+      - CACHE_REDIS_DB=1
+      - CACHE_DEFAULT_TIMEOUT=300
+      
+      # Results cache configuration
+      - RESULTS_CACHE_TYPE=redis
+      - RESULTS_CACHE_REDIS_HOST=redis
+      - RESULTS_CACHE_REDIS_PORT=6379
+      - RESULTS_CACHE_REDIS_DB=2
+      
+      # Celery configuration (optional, for async tasks)
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ${SUPERSET_DATA_DIR}/logs:/var/lib/superset
+      - ${SUPERSET_DATA_DIR}/data:/home/superset
+      - ./entrypoint.sh:/app/entrypoint.sh
+    networks:
+      - data_science_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    entrypoint: /bin/bash /app/entrypoint.sh
+
