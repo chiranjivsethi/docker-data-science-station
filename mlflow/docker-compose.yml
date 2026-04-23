@@ -1,0 +1,44 @@
+services:
+  # ======================================
+  # MLFLOW INITIALIZATION
+  # ======================================
+  init-mlflow:
+    image: busybox:latest
+    container_name: init_mlflow
+    volumes:
+      - mlflow_data:/mlflow
+    command: sh -c "mkdir -p /mlflow && chmod -R 777 /mlflow && echo 'MLflow directories initialized'"
+    networks:
+      - data_science_network
+
+  # ======================================
+  # ML EXPERIMENT TRACKING
+  # ======================================
+  mlflow:
+    image: ${MLFLOW_IMAGE}
+    container_name: mlflow_container
+    ports:
+      - "${MLFLOW_PORT}:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=${MLFLOW_BACKEND_STORE_URI}
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=${MLFLOW_DEFAULT_ARTIFACT_ROOT}
+      - MLFLOW_SERVER_ALLOWED_HOSTS=${MLFLOW_SERVER_ALLOWED_HOSTS}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}
+    restart: unless-stopped
+    depends_on:
+      init-mlflow:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - data_science_network
+    command: mlflow server --host 0.0.0.0 --port 5000 --allowed-hosts "*" --backend-store-uri ${MLFLOW_BACKEND_STORE_URI} --default-artifact-root ${MLFLOW_DEFAULT_ARTIFACT_ROOT}
+
+volumes:
+  mlflow_data:

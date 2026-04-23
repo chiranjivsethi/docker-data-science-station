@@ -56,6 +56,7 @@ SERVICES = {
     "MinIO": {"url": f"{current_base_url}:9001", "icon": "🗄️", "health_check_type": "http"},
     "PostgreSQL": {"host": f"{current_base_url}", "port": "5432", "icon": "🐘", "health_check_type": "postgres"},
     "Airflow": {"url": f"{current_base_url}:8080", "icon": "🌬️", "health_check_type": "http"},
+    "MLflow": {"url": f"{current_base_url}:5000", "icon": "📊", "health_check_type": "http"},
 }
 
 def check_health(url, health_check_type):

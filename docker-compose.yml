@@ -1,5 +1,6 @@
 include:
   - ./airflow/docker-compose.yml
+  - ./mlflow/docker-compose.yml
 
 services:
   # ======================================
@@ -94,6 +95,7 @@ services:
       - jupyterlab
       - minio
       - postgres
+      - mlflow
     networks:
       - data_science_network
 
