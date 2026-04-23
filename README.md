@@ -1,6 +1,6 @@
 # Docker Data Science Station
 
-A comprehensive Docker-based data science environment with Jupyter, Airflow, MinIO, PostgreSQL and Streamlit Dashboard available at http://localhost:80
+A comprehensive Docker-based data science environment with JupyterLab, Apache Airflow, MLflow, MinIO, PostgreSQL, and Streamlit Dashboard available athttp://localhost:80
 
 ## Features
 
@@ -9,6 +9,7 @@ A comprehensive Docker-based data science environment with Jupyter, Airflow, Min
 - **MinIO**: S3-compatible object storage
 - **PostgreSQL**: Relational database backend
 - **Redis**: Cache and Celery broker for Airflow
+- **MLflow**: Machine learning experiment tracking and model registry
 - **Streamlit Dashboard**: Unified access layer for all services
 - **Automatic Directory Creation**: All required directories are created on first run for reproducibility
 
@@ -25,9 +26,14 @@ Stop services:
 docker compose down
 ```
 
-View logs:
+View service logs:
 ```bash
 docker compose logs -f <service_name>
+```
+
+View all running services:
+```bash
+docker compose ps
 ```
 
 ## Jupyter Kernel Management
@@ -68,14 +74,17 @@ sudo chmod -R 777 /to/directory/path
 
 Check service status:
 ```bash
-docker compose ps
-```
-
-View logs for a specific service:
-```bash
-docker compose logs postgres
-docker compose logs jupyterlab
-docker compose logs airflow-scheduler
+docker compose ps (create from .env.example)
+├── .env.example                # Environment template with all available options
+├── README.md                   # This file
+├── airflow/
+│   └── docker-compose.yml      # Airflow services and DAG orchestration
+├── jupyterlabs/
+│   └── dockerfile              # JupyterLab image definition
+├── mlflow/
+│   └── docker-compose.yml      # MLflow tracking server configuration
+└── dashboard/
+    ├── app.py                  # Streamlit unified dashboard
 ```
 
 ## Project Structure
